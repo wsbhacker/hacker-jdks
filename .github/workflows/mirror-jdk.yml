@@ -1,0 +1,33 @@
+name: Mirror JDK to Release
+
+on:
+  workflow_dispatch: # 手动触发，想存什么版本就什么时候点一下
+    inputs:
+      jdk_url:
+        description: "JDK Direct Download URL"
+        required: true
+      version_tag:
+        description: "Tag Name (e.g., v8u312)"
+        required: true
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 必须给写权限才能发 Release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download JDK
+        run: |
+          wget -O jdk_package.zip "${{ github.event.inputs.jdk_url }}"
+          ls -lh jdk_package.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version_tag }}
+          files: jdk_package.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
